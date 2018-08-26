@@ -1,0 +1,15 @@
+DisablePathCorrection = false
+EnablePathEscape = false
+FireMethodNotAllowed = true
+DisableBodyConsumptionOnUnmarshal = false
+TimeFormat = "Mon, 01 Jan 2006 15:04:05 GMT"
+Charset = "UTF-8"
+PostMaxMemory = 33554432
+
+[Other]
+	ServerName = "go-note"
+	DSN = "root:root@tcp(127.0.0.1:3306)/go-note?charset=utf8mb4&parseTime=True&loc=Asia%2FChongqing"
+	TimeZone = "Asia/Chongqing"
+	AppKey = "mmh$Xt6XVAAHiS$h"
+	TokenExpires = 86400
+	UploadDir = "./uploads"
