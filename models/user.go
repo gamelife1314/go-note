@@ -36,7 +36,7 @@ type User struct {
 	Steam                  *string    `gorm:"default: null" json:"steam"`
 	EmailIsActive          uint8      `gorm:"default:0;not null" json:"emailIsActive"`
 	IsLocked               uint8      `gorm:"default:0;not null" json:"isLocked"`
-	LastVisitedAt          *time.Time `gorm:"default: null" json:"_"`
+	LastVisitedAt          *time.Time `gorm:"default: null" json:"-"`
 	LastVisitedAtTimestamp *uint      `gorm:"-" json:"lastVisitedAt"`
 	LastVisitedIp          *string    `gorm:"default: null" json:"lastVisitedIp"`
 	CreatedAt              time.Time  `json:"-"`
