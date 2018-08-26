@@ -1,3 +1,4 @@
+
 ### go-note
 A simple blog api written with go.
 
@@ -6,5 +7,3 @@ A simple blog api written with go.
 1. iris
 2. gorm
 
-
-It's under developing.
