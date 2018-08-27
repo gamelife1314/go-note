@@ -7,6 +7,7 @@ const UserRegisterPasswordLengthError = 4404
 const UserRegisterEmailFormatError = 4405
 const UserRegisterEmailUniqueError = 4406
 const PasswordNotEqual = 4408
+const OldPasswordInputError = 4409
 
 // 用户登录
 const UserLoginError = 4407

@@ -5,14 +5,6 @@ import (
 	"github.com/kataras/iris/mvc"
 )
 
-type EmptyData struct{}
-
-type ResponseStructure struct {
-	Code    int         `json:"code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
-}
-
 func init() {
 
 	mvc.New(common.App.Party("/user")).Handle(new(UserController))

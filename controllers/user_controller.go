@@ -26,12 +26,13 @@ func (u *UserController) UpdatePassword() *ResponseStructure {
 	u.ResetResponseData()
 	var user = u.Ctx.Values().Get("user").(models.User)
 
+	oldPassword := strings.Trim(u.Ctx.PostValue("oldPassword"), " ")
 	password := strings.Trim(u.Ctx.PostValue("password"), " ")
 	passwordConfirm := strings.Trim(u.Ctx.PostValue("passwordConfirm"), " ")
 
-	if password != passwordConfirm {
-		u.ResponseStructure.Code = PasswordNotEqual
-		u.ResponseStructure.Message = "两次输入的密码不相等"
+	if models.CryptPassword(oldPassword) != user.Password {
+		u.ResponseStructure.Code = OldPasswordInputError
+		u.ResponseStructure.Message = "旧密码输入错误"
 		return u.ResponseStructure
 	}
 
@@ -40,8 +41,14 @@ func (u *UserController) UpdatePassword() *ResponseStructure {
 		u.ResponseStructure.Message = msg
 		return u.ResponseStructure
 	}
+
+	if password != passwordConfirm {
+		u.ResponseStructure.Code = PasswordNotEqual
+		u.ResponseStructure.Message = "两次输入的密码不相等"
+		return u.ResponseStructure
+	}
 	models.Database.Model(&user).Update("password", models.CryptPassword(password))
-	u.ResponseStructure.Data = user
+	u.ResponseStructure.Data["user"] = user
 	return u.ResponseStructure
 }
 
@@ -60,13 +67,13 @@ func (u *UserController) UpdateProfile() *ResponseStructure {
 		}
 	}
 	models.Database.Model(&user).Updates(updates)
-	u.ResponseStructure.Data = user
+	u.ResponseStructure.Data["user"] = user
 	return u.ResponseStructure
 }
 
 func (u *UserController) Profile() *ResponseStructure {
 	u.ResetResponseData()
-	u.ResponseStructure.Data = u.Ctx.Values().Get("user").(models.User)
+	u.ResponseStructure.Data["user"] = u.Ctx.Values().Get("user").(models.User)
 	return u.ResponseStructure
 }
 
@@ -77,7 +84,7 @@ func (u *UserController) Login() *ResponseStructure {
 	var user models.User
 	user.Login(credential, password)
 	if user.ID != 0 {
-		u.ResponseStructure.Data = user
+		u.ResponseStructure.Data["user"] = user
 	} else {
 		u.ResponseStructure.Code = UserLoginError
 		u.ResponseStructure.Message = fmt.Sprintf("用户名（或邮箱）与密码不匹配")
@@ -126,7 +133,7 @@ func (u *UserController) Post() *ResponseStructure {
 	}
 
 	user := models.NewUser(nickname, password, email)
-	u.ResponseStructure.Data = user
+	u.ResponseStructure.Data["user"] = user
 
 	return u.ResponseStructure
 }

@@ -23,7 +23,7 @@ func CustomContentLengthLimiter(limit int64) func(ctx iris.Context) {
 			ctx.JSON(ResponseStructure{
 				Code:    UploadFileExceedLimit,
 				Message: fmt.Sprintf("上传文件超过限制：%dM", limit),
-				Data:    EmptyData{},
+				Data:    map[string]interface{}{},
 			})
 			return
 		}
@@ -78,7 +78,7 @@ func (u *UploadController) Avatar() *ResponseStructure {
 	}
 
 	models.Database.Model(&user).Updates(map[string]interface{}{"avatar": strings.TrimLeft(fileName, ".")})
-	u.ResponseStructure.Data = user
+	u.ResponseStructure.Data["user"] = user
 
 	return u.ResponseStructure
 }

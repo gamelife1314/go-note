@@ -18,7 +18,7 @@ func Authenticate(ctx iris.Context) {
 		ctx.JSON(ResponseStructure{
 			Code:    Unauthenticated,
 			Message: "Unauthenticated",
-			Data:    EmptyData{},
+			Data:    map[string]interface{}{},
 		})
 	} else {
 		ctx.Values().Set("user", user)
