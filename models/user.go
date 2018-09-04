@@ -46,7 +46,7 @@ type User struct {
 
 	Dynamics  []Dynamic `json:"-"`                             // 关于某人的动态
 	Articles  []Article `gorm:"foreignkey:CreatorId" json:"-"` // 某人发布的文章
-	AuthToken *string   `gorm:"-" json:"authToken"`
+	AuthToken *string   `gorm:"-" json:"-"`
 }
 
 type UserAuthToken struct {

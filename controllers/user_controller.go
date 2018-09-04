@@ -85,6 +85,7 @@ func (u *UserController) Login() *ResponseStructure {
 	user.Login(credential, password)
 	if user.ID != 0 {
 		u.ResponseStructure.Data["user"] = user
+		u.ResponseStructure.Data["authToken"] = user.AuthToken
 	} else {
 		u.ResponseStructure.Code = UserLoginError
 		u.ResponseStructure.Message = fmt.Sprintf("用户名（或邮箱）与密码不匹配")
@@ -134,6 +135,7 @@ func (u *UserController) Post() *ResponseStructure {
 
 	user := models.NewUser(nickname, password, email)
 	u.ResponseStructure.Data["user"] = user
+	u.ResponseStructure.Data["authToken"] = user.AuthToken
 
 	return u.ResponseStructure
 }
