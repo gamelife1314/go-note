@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Topic struct {
 	ID        uint   `gorm:"primary_key" json:"-"`
@@ -28,10 +30,33 @@ func InitTopics() {
 
 	for parent, children := range topics {
 		var parentModel Topic
-		Database.Where(Topic{Name: parent}).FirstOrCreate(&parentModel)
+		Database.Where(Topic{Name: parent, ParentId: nil}).FirstOrCreate(&parentModel)
 		for _, child := range children {
 			var childModel Topic
 			Database.Where(Topic{Name: child, ParentId: &parentModel.ID}).FirstOrCreate(&childModel)
 		}
 	}
+}
+
+func TopicsByLevel() []map[string]interface{} {
+	var parents []Topic
+	var results []map[string]interface{}
+	Database.Where(map[string]interface{}{"parent_id": nil}).Find(&parents)
+	for _, parent := range parents {
+		var children []Topic
+		var childrenArr []map[string]interface{}
+		Database.Where(map[string]interface{}{"parent_id": parent.ID}).Find(&children)
+		for _, child := range children {
+			childrenArr = append(childrenArr, map[string]interface{}{
+				"id":   child.ID,
+				"name": child.Name,
+			})
+		}
+		results = append(results, map[string]interface{}{
+			"id":       parent.ID,
+			"name":     parent.Name,
+			"children": childrenArr,
+		})
+	}
+	return results
 }

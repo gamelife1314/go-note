@@ -21,18 +21,7 @@ func init() {
 		panic("Error Happened when Connect to Database!")
 	}
 
-	models.Database.LogMode(true)
-	models.Database.AutoMigrate(
-		&models.User{},
-		&models.Dynamic{},
-		&models.FollowRelation{},
-		&models.Article{},
-		&models.Comment{},
-		&models.Topic{},
-		&models.ArticleTopic{},
-	)
-
-	models.InitTopics()
+	models.DatabaseInit()
 }
 
 func main() {

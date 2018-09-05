@@ -10,4 +10,5 @@ func init() {
 	mvc.New(common.App.Party("/user")).Handle(new(UserController))
 	mvc.New(common.App.Party("/upload")).Handle(new(UploadController))
 	mvc.New(common.App.Party("/site")).Handle(new(SiteController))
+	mvc.New(common.App.Party("/topic")).Handle(new(TopicController))
 }
