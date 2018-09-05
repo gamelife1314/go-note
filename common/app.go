@@ -4,6 +4,7 @@ import (
 	"github.com/betacraft/yaag/irisyaag"
 	"github.com/betacraft/yaag/yaag"
 	"github.com/gamelife1314/go-note/config"
+	"github.com/iris-contrib/middleware/cors"
 	"github.com/kataras/golog"
 	"github.com/kataras/iris"
 	"os"
@@ -31,11 +32,5 @@ func init() {
 	App.StaticWeb("/doc", "./doc")
 	App.StaticWeb("/uploads", "./uploads")
 
-	App.UseGlobal(func(context iris.Context) {
-		context.Header("Access-Control-Allow-Origin", context.Host())
-		context.Header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE")
-		context.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, x-token")
-		context.Header("Access-Control-Allow-Credentials", "true")
-		context.Next()
-	})
+	App.UseGlobal(cors.Default())
 }

@@ -31,6 +31,8 @@ func init() {
 		&models.Topic{},
 		&models.ArticleTopic{},
 	)
+
+	models.InitTopics()
 }
 
 func main() {
