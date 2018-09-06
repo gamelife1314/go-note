@@ -32,5 +32,12 @@ func init() {
 	App.StaticWeb("/doc", "./doc")
 	App.StaticWeb("/uploads", "./uploads")
 
-	App.UseGlobal(cors.Default())
+	App.UseGlobal(cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{"GET", "POST", "HEAD", "PATCH", "PUT", "PATCH", "OPTIONS"},
+		AllowedHeaders: []string{"Origin", "Content-Type", "Accept", "x-token", "Accept-Encoding",
+			"Cache-Control", "Connection", "Content-Length", "User-Agent", "Host", "Pragma", "Referer"},
+		AllowCredentials: true,
+		MaxAge:           86400,
+	}))
 }
