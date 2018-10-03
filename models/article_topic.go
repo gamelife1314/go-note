@@ -8,3 +8,7 @@ type ArticleTopic struct {
 	TopicId   uint
 	CreatedAt time.Time
 }
+
+func (a *ArticleTopic) TableName() string {
+	return "article_topic"
+}

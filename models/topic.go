@@ -5,14 +5,14 @@ import (
 )
 
 type Topic struct {
-	ID        uint   `gorm:"primary_key" json:"-"`
-	Name      string `gorm:"type:char(24);not null;unique" json:"name"`
-	ParentId  *uint  `gorm:"column:parent_id" json:"-"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *time.Time `sql:"index"`
+	ID        uint       `gorm:"primary_key" json:"id"`
+	Name      string     `gorm:"type:char(24);not null;unique" json:"name"`
+	ParentId  *uint      `gorm:"column:parent_id" json:"-"`
+	CreatedAt time.Time  `json:"-"`
+	UpdatedAt time.Time  `json:"-"`
+	DeletedAt *time.Time `sql:"index" json:"-"`
 
-	Articles []Article `gorm:"many2many:article_topic"`
+	Articles []Article `gorm:"many2many:article_topic" json:"-"`
 }
 
 func InitTopics() {
@@ -59,4 +59,11 @@ func TopicsByLevel() []map[string]interface{} {
 		})
 	}
 	return results
+}
+
+func (t *Topic) Transform() map[string]interface{} {
+	return map[string]interface{}{
+		"id":   t.ID,
+		"name": t.Name,
+	}
 }

@@ -33,3 +33,12 @@ func Unique(field, table, value string) (pass bool, msg string) {
 	}
 	return true, ""
 }
+
+func Exists(field, table, value string) (pass bool, msg string) {
+	var count uint
+	models.Database.Table(table).Where(map[string]interface{}{field: value}).Count(&count)
+	if count == 0 {
+		return false, fmt.Sprintf("%s 的值：%s 不存在", field, value)
+	}
+	return true, ""
+}

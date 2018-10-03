@@ -16,6 +16,7 @@ type ResponseStructure struct {
 type BaseController struct {
 	ResponseStructure *ResponseStructure
 	Ctx               iris.Context
+	PerPageLimit      int32
 }
 
 func (base *BaseController) ResetResponseData() {

@@ -6,6 +6,8 @@ import (
 	"github.com/gamelife1314/go-note/models"
 	"github.com/gamelife1314/go-note/validator"
 	"github.com/kataras/iris/mvc"
+	"math"
+	"strconv"
 	"strings"
 )
 
@@ -15,11 +17,16 @@ type UserController struct {
 
 func (u *UserController) BeforeActivation(b mvc.BeforeActivation) {
 	u.BaseController.BeforeActivation(b)
+	u.PerPageLimit = 10
 	b.Handle("POST", "/register", "Post")
 	b.Handle("POST", "/login", "Login")
 	b.Handle("GET", "/profile", "Profile", Authenticate)
 	b.Handle("POST", "/profile", "UpdateProfile", Authenticate)
 	b.Handle("POST", "/update/password", "UpdatePassword", Authenticate)
+	b.Handle("POST", "/follow", "Follow", Authenticate)
+	b.Handle("GET", "/follow/list", "Followers", Authenticate)
+	b.Handle("GET", "/fans/list", "Fans", Authenticate)
+	b.Handle("GET", "/dynamics/list", "Dynamics", Authenticate)
 }
 
 func (u *UserController) UpdatePassword() *ResponseStructure {
@@ -99,7 +106,6 @@ func (u *UserController) Post() *ResponseStructure {
 	nickname := strings.Trim(u.Ctx.PostValue("nickname"), " ")
 	password := strings.Trim(u.Ctx.PostValue("password"), " ")
 	email := strings.Trim(u.Ctx.PostValue("email"), " ")
-	fmt.Println("hell", nickname)
 
 	if pass, msg := validator.Length("nickname", nickname, 3, 12); !pass {
 		u.ResponseStructure.Code = UserRegisterNicknameLengthError
@@ -137,5 +143,90 @@ func (u *UserController) Post() *ResponseStructure {
 	u.ResponseStructure.Data["user"] = user
 	u.ResponseStructure.Data["authToken"] = user.AuthToken
 
+	return u.ResponseStructure
+}
+
+func (u *UserController) Follow() *ResponseStructure {
+	u.ResetResponseData()
+	var user = u.Ctx.Values().Get("user").(models.User)
+
+	userId, err := u.Ctx.PostValueInt("userId")
+
+	if err != nil {
+		u.ResponseStructure.Code = FollowUserNotExists
+		u.ResponseStructure.Message = "userId 指定的用户不存在"
+		return u.ResponseStructure
+	}
+
+	if uint(userId) == user.ID {
+		u.ResponseStructure.Code = FollowUserSelf
+		u.ResponseStructure.Message = "不能关注自己"
+		return u.ResponseStructure
+	}
+
+	var isExists int
+	models.Database.Model(&models.FollowRelation{}).Where(map[string]interface{}{
+		"source_user_id": user.ID,
+		"target_user_id": userId,
+	}).Count(&isExists)
+	if isExists != 0 {
+		u.ResponseStructure.Code = FollowExists
+		u.ResponseStructure.Message = "已经关注此人"
+		return u.ResponseStructure
+	}
+
+	if pass, _ := validator.Exists("id", "users", strconv.Itoa(int(userId))); !pass {
+		u.ResponseStructure.Code = FollowUserNotExists
+		u.ResponseStructure.Message = "userId 指定的用户不存在"
+		return u.ResponseStructure
+	}
+
+	user.Follow(userId)
+	u.ResponseStructure.Data["followers"] = user.FansList()
+
+	var follower models.User
+	models.Database.First(&follower, userId)
+	user.LikeUser(&follower)
+	return u.ResponseStructure
+}
+
+func (u *UserController) Followers() *ResponseStructure {
+	u.ResetResponseData()
+	var user = u.Ctx.Values().Get("user").(models.User)
+	u.ResponseStructure.Data["followers"] = user.FollowersList()
+	return u.ResponseStructure
+}
+
+func (u *UserController) Fans() *ResponseStructure {
+	u.ResetResponseData()
+	var user = u.Ctx.Values().Get("user").(models.User)
+	u.ResponseStructure.Data["fans"] = user.FansList()
+	return u.ResponseStructure
+}
+
+func (u *UserController) Dynamics() *ResponseStructure {
+	u.ResetResponseData()
+
+	var user = u.Ctx.Values().Get("user").(models.User)
+	page := u.Ctx.URLParamInt32Default("page", 1)
+	offset := (page - 1) * u.PerPageLimit
+
+	var count int
+	models.Database.Model(&models.Dynamic{}).Where("user_id = ?", user.ID).Count(&count)
+	pages := math.Ceil(float64(float64(count) / float64(u.PerPageLimit)))
+
+	var dynamics []models.Dynamic
+	models.Database.Where("user_id = ?", user.ID).
+		Order("id desc").
+		Limit(u.PerPageLimit).
+		Offset(offset).
+		Find(&dynamics)
+
+	var result = make([]map[string]interface{}, 0)
+	for _, article := range dynamics {
+		result = append(result, article.Transform())
+	}
+	u.ResponseStructure.Data["dynamics"] = result
+	u.ResponseStructure.Data["total_page"] = pages
 	return u.ResponseStructure
 }

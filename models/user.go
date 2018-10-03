@@ -47,6 +47,8 @@ type User struct {
 	Dynamics  []Dynamic `json:"-"`                             // 关于某人的动态
 	Articles  []Article `gorm:"foreignkey:CreatorId" json:"-"` // 某人发布的文章
 	AuthToken *string   `gorm:"-" json:"-"`
+	Followers []User    `gorm:"many2many:follow_relations;association_jointable_foreignkey:target_user_id;jointable_foreignkey:source_user_id"`
+	Fans      []User    `gorm:"many2many:follow_relations;association_jointable_foreignkey:source_user_id;jointable_foreignkey:target_user_id"`
 }
 
 type UserAuthToken struct {
@@ -87,6 +89,37 @@ func (u *User) FillRelatedFields() {
 	}
 }
 
+func (u *User) Transform() map[string]interface{} {
+	var result = map[string]interface{}{
+		"address":       u.Address,
+		"avatar":        u.Avatar,
+		"company":       u.Company,
+		"createdAt":     u.CreatedAt.Unix(),
+		"email":         u.Email,
+		"emailIsActive": u.EmailIsActive,
+		"facebook":      u.Facebook,
+		"gender":        u.Gender,
+		"github":        u.Github,
+		"homepage":      u.Homepage,
+		"instagram":     u.Instagram,
+		"isLocked":      u.IsLocked,
+		"lastVisitedIp": u.LastVisitedIp,
+		"motto":         u.Motto,
+		"nickname":      u.Nickname,
+		"steam":         u.Steam,
+		"telegram":      u.Telegram,
+		"twitter":       u.Twitter,
+		"uid":           EncryptModelId(u.ID),
+		"id":            u.ID,
+	}
+
+	if u.LastVisitedAt != nil {
+		result["lastVisitedAt"] = u.LastVisitedAt.Unix()
+	}
+
+	return result
+}
+
 func (u *User) GenerateAuthToken() (*string, error) {
 	var authToken = UserAuthToken{
 		UserId:    u.ID,
@@ -119,4 +152,176 @@ func (u *User) ParseUserFromAuthToken(token string) error {
 			}
 		}
 	}
+}
+
+func (u *User) FollowersList() (followers []map[string]interface{}) {
+	var f []User
+	Database.Model(u).Related(&f, "Followers")
+	for _, user := range f {
+		followers = append(followers, user.Transform())
+	}
+	return followers
+}
+
+func (u *User) FansList() (fans []map[string]interface{}) {
+	var f []User
+	Database.Model(u).Related(&f, "Fans")
+	for _, user := range f {
+		fans = append(fans, user.Transform())
+	}
+	return fans
+}
+
+func (u *User) Follow(followerId int) *User {
+	followRelation := FollowRelation{
+		SourceUserId: u.ID,
+		TargetUserId: uint(followerId),
+	}
+	Database.NewRecord(followRelation)
+	Database.Create(&followRelation)
+	return u
+}
+
+func (u *User) LikeArticle(article *Article) *Dynamic {
+
+	var dynamic Dynamic
+
+	Database.Where(map[string]interface{}{
+		"type":      LikeArticleDynamicType,
+		"object_id": article.ID,
+		"user_id":   u.ID,
+	}).First(&dynamic)
+
+	if dynamic.ID != 0 {
+		return &dynamic
+	}
+
+	data, _ := json.Marshal(map[string]interface{}{
+		"article": article.Transform(false, false),
+	})
+
+	dynamic = Dynamic{
+		Type:     LikeArticleDynamicType,
+		ObjectId: article.ID,
+		UserId:   u.ID,
+		Data:     string(data),
+	}
+
+	Database.NewRecord(dynamic)
+	Database.Create(&dynamic)
+
+	return &dynamic
+}
+
+func (u *User) LikeUser(user *User) *Dynamic {
+
+	var dynamic Dynamic
+
+	Database.Where(map[string]interface{}{
+		"type":      FocusUserDynamicType,
+		"object_id": user.ID,
+		"user_id":   u.ID,
+	}).First(&dynamic)
+
+	if dynamic.ID != 0 {
+		return &dynamic
+	}
+
+	data, _ := json.Marshal(map[string]interface{}{
+		"user": user.Transform(),
+	})
+
+	dynamic = Dynamic{
+		Type:     FocusUserDynamicType,
+		ObjectId: user.ID,
+		UserId:   u.ID,
+		Data:     string(data),
+	}
+
+	Database.NewRecord(dynamic)
+	Database.Create(&dynamic)
+
+	return &dynamic
+}
+
+func (u *User) LikeComment(comment *Comment) *Dynamic {
+
+	var dynamic Dynamic
+
+	Database.Where(map[string]interface{}{
+		"type":      LikeCommentDynamicType,
+		"object_id": comment.ID,
+		"user_id":   u.ID,
+	}).First(&dynamic)
+
+	if dynamic.ID != 0 {
+		return &dynamic
+	}
+
+	data, _ := json.Marshal(map[string]interface{}{
+		"comment": comment.Transform(false),
+	})
+
+	dynamic = Dynamic{
+		Type:     LikeCommentDynamicType,
+		ObjectId: comment.ID,
+		UserId:   u.ID,
+		Data:     string(data),
+	}
+
+	Database.NewRecord(dynamic)
+	Database.Create(&dynamic)
+
+	return &dynamic
+}
+
+func (u *User) HateComment(comment *Comment) *Dynamic {
+
+	var dynamic Dynamic
+
+	Database.Where(map[string]interface{}{
+		"type":      HateCommentDynamicType,
+		"object_id": comment.ID,
+		"user_id":   u.ID,
+	}).First(&dynamic)
+
+	if dynamic.ID != 0 {
+		return &dynamic
+	}
+
+	data, _ := json.Marshal(map[string]interface{}{
+		"comment": comment.Transform(false),
+	})
+
+	dynamic = Dynamic{
+		Type:     HateCommentDynamicType,
+		ObjectId: comment.ID,
+		UserId:   u.ID,
+		Data:     string(data),
+	}
+
+	Database.NewRecord(dynamic)
+	Database.Create(&dynamic)
+
+	return &dynamic
+}
+
+func (u *User) CommentArticle(article *Article) *Dynamic {
+	var dynamic Dynamic
+
+	data, _ := json.Marshal(map[string]interface{}{
+		"article": article.Transform(true, true),
+	})
+
+	dynamic = Dynamic{
+		Type:     CommentArticleDynamicType,
+		ObjectId: article.ID,
+		UserId:   u.ID,
+		Data:     string(data),
+	}
+
+	Database.NewRecord(dynamic)
+	Database.Create(&dynamic)
+
+	return &dynamic
 }

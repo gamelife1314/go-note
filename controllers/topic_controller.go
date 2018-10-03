@@ -11,10 +11,10 @@ type TopicController struct {
 
 func (t *TopicController) BeforeActivation(b mvc.BeforeActivation) {
 	t.BaseController.BeforeActivation(b)
-	b.Handle("GET", "/by/level", "ByLevel")
+	b.Handle("GET", "/list", "List")
 }
 
-func (t *TopicController) ByLevel() *ResponseStructure {
+func (t *TopicController) List() *ResponseStructure {
 	t.ResetResponseData()
 	t.ResponseStructure.Data["topics"] = models.TopicsByLevel()
 	return t.ResponseStructure

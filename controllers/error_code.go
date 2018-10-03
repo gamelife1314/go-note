@@ -20,3 +20,19 @@ const UploadFileExceedLimit = 4448
 
 // 服务器内部错误
 const ServerInternalError = 5000
+
+// 创建帖子
+const ArticleTitleLengthError = 4410
+const ArticleTitleContentError = 4411
+const ArticleTopicNotExists = 4412
+
+// 关注用户
+const FollowUserNotExists = 4413
+const FollowUserSelf = 4414
+const FollowExists = 4415
+
+// 查询帖子
+const ArticleIdParamError = 4416
+
+// 评论
+const CommentIdParamError = 4417

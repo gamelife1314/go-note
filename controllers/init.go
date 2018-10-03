@@ -12,4 +12,6 @@ func init() {
 	mvc.New(common.App.Party("/upload").AllowMethods(iris.MethodOptions)).Handle(new(UploadController))
 	mvc.New(common.App.Party("/site").AllowMethods(iris.MethodOptions)).Handle(new(SiteController))
 	mvc.New(common.App.Party("/topic").AllowMethods(iris.MethodOptions)).Handle(new(TopicController))
+	mvc.New(common.App.Party("/article").AllowMethods(iris.MethodOptions)).Handle(new(ArticleController))
+	mvc.New(common.App.Party("/comment").AllowMethods(iris.MethodOptions)).Handle(new(CommentController))
 }

@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 const FocusUserDynamicType = 1      // 关注用户，用户id
 const LikeCommentDynamicType = 2    // 点赞评论，评论id
@@ -23,4 +25,39 @@ type Dynamic struct {
 
 func (dynamic *Dynamic) TableName() string {
 	return "dynamics"
+}
+
+func (dynamic *Dynamic) Transform() map[string]interface{} {
+
+	data := map[string]interface{}{
+		"id":        dynamic.ID,
+		"type":      dynamic.Type,
+		"createdAt": dynamic.CreatedAt.Unix(),
+	}
+
+	if dynamic.Type == FocusUserDynamicType {
+		var user User
+		Database.First(&user, dynamic.ObjectId)
+		data["data"] = map[string]interface{}{
+			"user": user.Transform(),
+		}
+	}
+
+	if dynamic.Type == LikeCommentDynamicType || dynamic.Type == HateCommentDynamicType {
+		var comment Comment
+		Database.First(&comment, dynamic.ObjectId)
+		data["data"] = map[string]interface{}{
+			"comment": comment.Transform(false),
+		}
+	}
+
+	if dynamic.Type == LikeArticleDynamicType || dynamic.Type == CommentArticleDynamicType {
+		var article Article
+		Database.First(&article, dynamic.ObjectId)
+		data["data"] = map[string]interface{}{
+			"article": article.Transform(true, true),
+		}
+	}
+
+	return data
 }

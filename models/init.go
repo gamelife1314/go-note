@@ -10,7 +10,7 @@ var Database *gorm.DB
 func DatabaseInit() {
 	Database.LogMode(true)
 	Database.AutoMigrate(
-		User{},
+		&User{},
 		&Dynamic{},
 		&FollowRelation{},
 		&Article{},
